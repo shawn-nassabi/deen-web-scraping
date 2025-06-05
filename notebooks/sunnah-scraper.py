@@ -10,7 +10,7 @@ def scrape_book(book: str, book_number: int):
 
     if response.status_code != 200:
         print(f"Failed to retrieve book {book_number}. Status code: {response.status_code}")
-        return []
+        return None
 
     soup = BeautifulSoup(response.text, "html.parser")
 
@@ -65,8 +65,22 @@ def save_to_csv(hadiths, filename):
         writer.writerow(["book_number", "arabic", "english", "reference", "in_book_reference", "hadith_url"])
         writer.writerows(hadiths)
 
+def scrape_all_books(book: str):
+    all_hadiths = []
+    book_number = 1
+
+    while True:
+        print(f"🔎 Scraping {book} book {book_number}...")
+        hadiths = scrape_book(book, book_number)
+        if hadiths is None:
+            print(f"✅ Finished at {book}/{book_number - 1}")
+            break
+        all_hadiths.extend(hadiths)
+        book_number += 1
+
+    output_path = os.path.join("..", "datasets", f"{book}_all_books.csv")
+    save_to_csv(all_hadiths, output_path)
+    print(f"📁 Saved {len(all_hadiths)} hadiths to {output_path}")
+
 if __name__ == "__main__":
-    data = scrape_book("bukhari", 1)
-    output_path = os.path.join("..", "datasets", "sahih_bukhari_book_1.csv")
-    save_to_csv(data, output_path)
-    print(f"✅ Saved {len(data)} hadiths to {output_path}")
+    scrape_all_books("bukhari") # Change "bukhari" to the desired book slug
