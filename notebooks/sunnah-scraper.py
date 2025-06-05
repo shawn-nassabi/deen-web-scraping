@@ -1,3 +1,5 @@
+import re
+
 import requests
 from bs4 import BeautifulSoup
 import csv
@@ -65,6 +67,12 @@ def save_to_csv(hadiths, filename):
         writer.writerow(["book_number", "arabic", "english", "reference", "in_book_reference", "hadith_url"])
         writer.writerows(hadiths)
 
+
+def extract_book_title(reference: str) -> str:
+    # Remove trailing number and whitespace, then replace spaces with underscores
+    title = re.sub(r"\s*\d+$", "", reference.strip())
+    return title.replace(" ", "_")
+
 def scrape_all_books(book: str):
     all_hadiths = []
     book_number = 1
@@ -78,7 +86,9 @@ def scrape_all_books(book: str):
         all_hadiths.extend(hadiths)
         book_number += 1
 
-    output_path = os.path.join("..", "datasets", f"{book}_all_books.csv")
+    raw_reference = all_hadiths[1][3]  # 'reference' column
+    book_title_slug = extract_book_title(raw_reference)
+    output_path = os.path.join("..", "datasets", f"{book_title_slug}_all_books.csv")
     save_to_csv(all_hadiths, output_path)
     print(f"📁 Saved {len(all_hadiths)} hadiths to {output_path}")
 
