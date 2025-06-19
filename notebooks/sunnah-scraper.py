@@ -105,5 +105,16 @@ def scrape_all_books(book: str):
     save_to_csv(all_hadiths, output_path)
     print(f"📁 Saved {len(all_hadiths)} hadiths to {output_path}")
 
+def scrape_one_book(book: str, book_number: int):
+    hadiths = scrape_book(book, book_number)
+    if hadiths:
+        book_title_slug = extract_book_title(hadiths[0][3])
+        output_path = os.path.join("..", "datasets", f"{book_title_slug}_book_{book_number}.csv")
+        save_to_csv(hadiths, output_path)
+        print(f"📁 Saved {len(hadiths)} hadiths to {output_path}")
+    else:
+        print(f"❌ No hadiths found for {book} book {book_number}")
+
 if __name__ == "__main__":
-    scrape_all_books("bukhari") # Change "bukhari" to the desired book slug
+    # scrape_all_books("bukhari") # pass desired book_slug as string
+     scrape_one_book("nasai", 1) # pass desired book slug and book number
