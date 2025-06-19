@@ -50,7 +50,8 @@ def scrape_book(book: str, book_number: int):
                     in_book_reference = inbook_td[1].text.replace(":", "").strip()
 
         # Default if grade not found
-        grade_text = "unspecified"
+        english_grade_text = "unspecified"
+        arabic_grade_text = "unspecified"
 
         annotation = block.find("div", class_="hadith_annotation")
         if annotation:
@@ -58,8 +59,12 @@ def scrape_book(book: str, book_number: int):
             if grade_table:
                 td_elements = grade_table.find_all("td", class_="english_grade")
                 if len(td_elements) >= 2:
-                    grade_raw = td_elements[1].get_text(separator=" ", strip=True)
-                    grade_text = grade_raw if grade_raw else "unspecified"
+                    english_grade_raw = td_elements[1].get_text(separator=" ", strip=True)
+                    english_grade_text = english_grade_raw if english_grade_raw else "unspecified"
+                td_elements = grade_table.find_all("td", class_="arabic_grade")
+                if len(td_elements) >= 2:
+                    arabic_grade_raw = td_elements[0].get_text(separator=" ", strip=True)
+                    arabic_grade_text = arabic_grade_raw if arabic_grade_raw else "unspecified"
 
         hadiths.append([
             f"Book {book_number} - {book_title}",
@@ -68,7 +73,8 @@ def scrape_book(book: str, book_number: int):
             reference,
             in_book_reference,
             hadith_url,
-            grade_text
+            english_grade_text,
+            arabic_grade_text
         ])
 
     return hadiths
@@ -77,7 +83,7 @@ def save_to_csv(hadiths, filename):
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, "w", newline='', encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["book_number", "arabic", "english", "reference", "in_book_reference", "hadith_url", "grade"])
+        writer.writerow(["book_number", "arabic", "english", "reference", "in_book_reference", "hadith_url", "english_grade", "arabic_grade"])
         writer.writerows(hadiths)
 
 
@@ -116,5 +122,5 @@ def scrape_one_book(book: str, book_number: int):
         print(f"❌ No hadiths found for {book} book {book_number}")
 
 if __name__ == "__main__":
-    # scrape_all_books("bukhari") # pass desired book_slug as string
-     scrape_one_book("nasai", 1) # pass desired book slug and book number
+    scrape_all_books("abudawud") # pass desired book_slug as string
+    # scrape_one_book("nasai", 1) # pass desired book slug and book number
