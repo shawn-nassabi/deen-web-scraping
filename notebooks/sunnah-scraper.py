@@ -49,13 +49,26 @@ def scrape_book(book: str, book_number: int):
                 if len(inbook_td) >= 2:
                     in_book_reference = inbook_td[1].text.replace(":", "").strip()
 
+        # Default if grade not found
+        grade_text = "unspecified"
+
+        annotation = block.find("div", class_="hadith_annotation")
+        if annotation:
+            grade_table = annotation.find("table", class_="gradetable")
+            if grade_table:
+                td_elements = grade_table.find_all("td", class_="english_grade")
+                if len(td_elements) >= 2:
+                    grade_raw = td_elements[1].get_text(separator=" ", strip=True)
+                    grade_text = grade_raw if grade_raw else "unspecified"
+
         hadiths.append([
             f"Book {book_number} - {book_title}",
             arabic_text,
             english_text,
             reference,
             in_book_reference,
-            hadith_url
+            hadith_url,
+            grade_text
         ])
 
     return hadiths
@@ -64,7 +77,7 @@ def save_to_csv(hadiths, filename):
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, "w", newline='', encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["book_number", "arabic", "english", "reference", "in_book_reference", "hadith_url"])
+        writer.writerow(["book_number", "arabic", "english", "reference", "in_book_reference", "hadith_url", "grade"])
         writer.writerows(hadiths)
 
 
