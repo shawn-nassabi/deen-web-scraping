@@ -1,13 +1,10 @@
 import os
 import json
-import gzip
-import base64
 from tqdm import tqdm
 from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 from pinecone import Pinecone
-
-
+from chunksets.text_prepocesser import compress_text
 
 load_dotenv()
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
@@ -28,13 +25,6 @@ index = pc.Index(INDEX_NAME)
 
 # Path to pre-chunked data
 INPUT_JSONL = "../datasets/cleaned_data/nahjal_balagha_cleaned_chunks.jsonl"  # or alkafi_cleaned_chunks.jsonl
-
-# Compression helper
-def compress_text(text: str) -> str:
-    if not text:
-        return ""
-    compressed = gzip.compress(text.encode("utf-8"))
-    return base64.b64encode(compressed).decode("utf-8")
 
 # Load records
 with open(INPUT_JSONL, 'r', encoding='utf-8') as f:
