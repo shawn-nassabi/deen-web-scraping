@@ -27,7 +27,7 @@ pc = Pinecone(api_key=PINECONE_API_KEY)
 index = pc.Index(INDEX_NAME)
 
 # Path to pre-chunked data
-INPUT_JSONL = "nahjal_balagha_cleaned_chunks.jsonl"  # or nahjul_balagha_cleaned_chunks.jsonl
+INPUT_JSONL = "../datasets/cleaned_data/nahjal_balagha_cleaned_chunks.jsonl"  # or alkafi_cleaned_chunks.jsonl
 
 # Compression helper
 def compress_text(text: str) -> str:

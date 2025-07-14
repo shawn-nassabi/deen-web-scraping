@@ -3,8 +3,7 @@ import re
 
 # Input/output
 INPUT_FILE = "../datasets/nahjal_balagha/NahjalBalagha_ThePeakofEloquence__alSharifalRadi.csv"
-OUTPUT_CSV = "../chunksets/nahjal_balagha_cleaned_chunks.csv"
-OUTPUT_JSONL = "../chunksets/nahjal_balagha_cleaned_chunks.jsonl"
+OUTPUT_JSONL = "../datasets/cleaned_data/nahjal_balagha_cleaned_chunks.jsonl"
 
 # Config
 CHUNK_SIZE = 350
@@ -117,9 +116,8 @@ def process_nahjul_balagha(input_file):
 
     # Save
     df_chunks = pd.DataFrame(all_chunks)
-    df_chunks.to_csv(OUTPUT_CSV, index=False)
     df_chunks.to_json(OUTPUT_JSONL, orient="records", lines=True)
-    print(f"\n✅ Done: {len(df_chunks)} chunks saved to:\n - {OUTPUT_CSV}\n - {OUTPUT_JSONL}")
+    print(f"\n✅ Done: {len(df_chunks)} chunks saved to:\n - {OUTPUT_JSONL}")
 
 # Run
 if __name__ == "__main__":
