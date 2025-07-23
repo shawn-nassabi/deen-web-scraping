@@ -45,6 +45,10 @@ def run_sparse_indexer(records):
         indices = np.nonzero(vec_array)[0].tolist()
         values = vec_array[indices].tolist()
 
+        if not indices:
+            print(f"Skipping empty vector for chunk: {r['chunk_id']} | hadith_id: {r.get('hadith_id', '')}")
+            return None
+
         hadith_id = f"{r['sect']}_{r['collection']}_{r.get('volume', '')}_{r.get('chapter_number', '')}_{r.get('hadith_no', '')}"
 
         metadata = {
@@ -65,7 +69,11 @@ def run_sparse_indexer(records):
 
 
     # Create sparse vectors
-    vectors = [tfidf_to_sparse(r, i, tfidf_matrix[i]) for i, r in enumerate(records)]
+    vectors = []
+    for i, r in enumerate(records):
+        sparse_vec = tfidf_to_sparse(r, i, tfidf_matrix[i])
+        if sparse_vec:
+            vectors.append(sparse_vec)
 
     # Upload in batches
     BATCH_SIZE = 50
