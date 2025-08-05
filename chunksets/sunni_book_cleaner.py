@@ -3,8 +3,6 @@ import re
 import pandas as pd
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-
-
 text_splitter = RecursiveCharacterTextSplitter(
     chunk_size=350,
     chunk_overlap=50,
@@ -44,10 +42,9 @@ def process_sunni_csv(csv_path, collection_name, sect="sunni"):
             book_number = match.group(1)
             hadith_no = match.group(2)
 
-         # Clean texts
+        # Clean texts
         text_en_full = row["english"]
         text_ar_full = row["arabic"]
-
 
         # Determine hadith ID
         hadith_id = f"{sect}_{collection_name}_{book_number}_{hadith_no}"
@@ -73,7 +70,7 @@ def process_sunni_csv(csv_path, collection_name, sect="sunni"):
                 "chunk_id": f"{collection_name}_{chunk_counter}",
                 "grade_en": grade_en,
                 "grade_ar": grade_ar,
-                "text_en": text_ar_full,
+                "text_en": text_en_full,
                 "text_ar": text_ar_full,
                 "reference": reference,
                 "hadith_url": hadith_url,
