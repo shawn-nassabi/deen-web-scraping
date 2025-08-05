@@ -8,7 +8,6 @@ from pinecone import Pinecone
 from chunksets.sunni_book_cleaner import process_sunni_csv
 from chunksets.text_prepocesser import compress_text, normalize_text
 from sklearn.feature_extraction.text import TfidfVectorizer
-import string
 
 # Load environment
 load_dotenv()
@@ -16,8 +15,8 @@ PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 INDEX_NAME = "deen-index-v2-sparse"  # <-- Use a separate sparse index
 NAMESPACE = "ns1"
 
-def run_sparse_indexer(records):
 
+def run_sparse_indexer(records):
     # Normalize text for sparse vectorization
     doc_texts = [normalize_text(r["text_chunk"]) for r in records]
 
@@ -37,7 +36,6 @@ def run_sparse_indexer(records):
     # Connect to Pinecone
     pc = Pinecone(api_key=PINECONE_API_KEY)
     index = pc.Index(INDEX_NAME)
-
 
     # Format for Pinecone sparse upsert
     def tfidf_to_sparse(r, chunk_idx, vec):
@@ -67,7 +65,6 @@ def run_sparse_indexer(records):
             "metadata": metadata
         }
 
-
     # Create sparse vectors
     vectors = []
     for i, r in enumerate(records):
@@ -83,6 +80,7 @@ def run_sparse_indexer(records):
 
     print(" Sparse vector upsert complete.")
 
+
 def run_shia_books_indexer():
     # Load chunked hadith records (already chunked)
     with open("../datasets/cleaned_data/nahjal_balagha_cleaned_chunks.jsonl", "r", encoding="utf-8") as f:
@@ -92,6 +90,7 @@ def run_shia_books_indexer():
     with open("../datasets/cleaned_data/alkafi_cleaned_chunks.jsonl", "r", encoding="utf-8") as f:
         records = [json.loads(line) for line in f]
     print(f" Loaded {len(records)} records from Al Kafi chunks.")
+
 
 def run_sunni_books_indexer():
     """ Call this function in the main script to run the dense indexer for Sunni files."""
@@ -111,6 +110,7 @@ def run_sunni_books_indexer():
     run_sparse_indexer(an_nasai)
     print(f"Processed {len(an_nasai)} An Nasa' chunks.")
 
+
 if __name__ == "__main__":
     first_input = input("Do you want to run the sparse indexer for Sunni files? (y/n): ").lower()
     if first_input == 'y':
@@ -122,5 +122,3 @@ if __name__ == "__main__":
         run_shia_books_indexer()
     else:
         print("Exiting without indexing shia files...")
-
-
