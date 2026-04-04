@@ -1,0 +1,41 @@
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+.pytest_cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+*.env.local
+
+# Data artifacts (large/generated files - uncomment to track if needed)
+# data/**/*.bak
+# data/**/*.tmp
+
+# Backup files created during OCR patching
+.pre_*.bak
+*.bak
+*.tmp
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
