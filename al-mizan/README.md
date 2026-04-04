@@ -49,6 +49,19 @@ custom_urls = ["https://www.al-mizan.org/specific-page"]
 scrape_al_mizan_pdfs(custom_urls)
 ```
 
+### Step 1b: Scrape SVG-backed Volume Routes
+
+For routes like `https://almizan.org/vol/34/1-237` (where the site uses "Read More"), scrape all pages directly from the static SVG source:
+
+```bash
+cd /Users/tamieemjaffary/PycharmProjects/deen-web-scraping
+venv/bin/python al-mizan/scrape_volume_svg.py --url https://almizan.org/vol/34/1-237
+```
+
+Outputs:
+- `datasets/al-mizan/svg_scraped/vol_34_1-237_chapter_contents.csv` (chapter/verse-range grouped content)
+- `datasets/al-mizan/svg_scraped/vol_34_1-237_pages.csv` (page-level text with metadata)
+
 ### Step 2: Extract and Clean PDFs
 
 Process the downloaded PDFs to extract text, parse metadata, and chunk commentary:
@@ -119,4 +132,3 @@ Each chunk in the vector database contains:
 - PDFs are skipped if they already exist locally
 - The cleaner uses intelligent parsing to extract metadata, but may need adjustment based on PDF structure
 - Commentary is chunked using RecursiveCharacterTextSplitter with 350 word chunks and 50 word overlap
-
