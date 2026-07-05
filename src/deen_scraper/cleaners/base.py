@@ -77,12 +77,16 @@ def extract_topic_tags(chapter_title: str) -> list[str]:
 
 def split_book(book: str) -> tuple[str, str]:
     """Split a ``"number | Title"`` book field into (book_number, book_title)."""
+    if not book or str(book).strip().lower() in ("nan", "none", ""):
+        return "", ""
     parts = str(book).split("|")
     return parts[0].strip(), parts[1].strip() if len(parts) > 1 else parts[0].strip()
 
 
 def split_chapter(chapter: str) -> tuple[str, str]:
     """Split a ``"number | Title"`` chapter field into (chapter_number, chapter_title)."""
+    if not chapter or str(chapter).strip().lower() in ("nan", "none", ""):
+        return "", ""
     parts = str(chapter).split("|", 1)
     return parts[0].strip(), parts[1].strip() if len(parts) > 1 else ""
 
