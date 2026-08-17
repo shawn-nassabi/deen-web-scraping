@@ -30,6 +30,9 @@ COLLECTION_INPUTS = {
     "al-mizan":             SHIA_RAW / "al-mizan",
 }
 
+# ── al-islam.org (scraped web source) ───────────────────────────────────
+AL_ISLAM_RAW = SHIA_RAW / "al-islam"
+
 # ── PDF paths ───────────────────────────────────────────────────────────
 FAQIH_PDF_DIR = SHIA_RAW / "man-la-yahduruhu-al-faqih" / "pdfs"
 TAHDHIB_PDF_DIR = SHIA_RAW / "tahdhib-al-ahkam" / "pdfs"
@@ -203,3 +206,50 @@ COLLECTIONS: dict[str, dict] = {
 SUNNI_COLLECTIONS = [
     "sahih-bukhari", "sahih-muslim", "tirmidhi", "abu-dawood", "an-nasai"
 ]
+
+# ---------------------------------------------------------------------------
+# al-islam.org author collections
+# ---------------------------------------------------------------------------
+# al-islam.org is organised by scholar rather than by book, so each author page
+# (``/person/<slug>``) becomes one collection holding all of that scholar's
+# books.  To add an author: add a ``slug: "Display Name"`` entry here and the
+# loop below registers its input dir, chunk file, and indexer prompt.
+AL_ISLAM_AUTHORS: dict[str, str] = {
+    "murtadha-mutahhari": "Murtadha Mutahhari",
+}
+
+AL_ISLAM_INDEXER_PROMPT = (
+    "Source: Al-Islam.org\n"
+    "Author: {author}\n"
+    "Book: {book_title}\n"
+    "Chapter No: {chapter_number}\n"
+    "Chapter Title: {chapter_title}\n"
+    "Topic Tags: {topic_tags}\n{text_chunk}"
+)
+
+
+def al_islam_collection_name(author_slug: str) -> str:
+    """Return the collection key used for an al-islam.org author slug."""
+    return f"al-islam-{author_slug}"
+
+
+def _register_al_islam_authors() -> list[str]:
+    """Add every al-islam.org author to the collection, input, and chunk registries."""
+    names = []
+    for slug, display_name in AL_ISLAM_AUTHORS.items():
+        name = al_islam_collection_name(slug)
+        names.append(name)
+        COLLECTION_INPUTS[name] = AL_ISLAM_RAW / slug
+        CHUNK_FILES[name] = CHUNKS_DIR / f"{name.replace('-', '_')}_cleaned_chunks.jsonl"
+        COLLECTIONS[name] = {
+            "sect": "shia",
+            "author": display_name,
+            "author_slug": slug,
+            "source": "al-islam.org",
+            "author_url": f"https://al-islam.org/person/{slug}",
+            "indexer_prompt": AL_ISLAM_INDEXER_PROMPT,
+        }
+    return names
+
+
+AL_ISLAM_COLLECTIONS: list[str] = _register_al_islam_authors()

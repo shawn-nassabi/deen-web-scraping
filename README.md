@@ -51,6 +51,7 @@ deen-web-scraping/
 │   ├── config.py              # Central config: paths, constants, collection metadata
 │   │
 │   ├── scrapers/              # Data acquisition (HTTP)
+│   │   ├── al_islam.py           # Scrape al-islam.org books by author page (Playwright)
 │   │   ├── al_mizan_web.py       # Download Al-Mizan PDFs from al-mizan.org
 │   │   ├── al_mizan_svg.py       # Scrape SVG-backed volume routes (almizan.org/vol/N/…)
 │   │   └── sunnah_scraper.py     # Scrape sunnah.com for Sunni collections
@@ -70,6 +71,7 @@ deen-web-scraping/
 │   │
 │   ├── cleaners/              # CSV cleaning + chunking -> JSONL
 │   │   ├── base.py               # Shared: chunk_paragraphs(), extract_topic_tags(), etc.
+│   │   ├── al_islam.py           # al-islam.org scraped chapters -> JSONL
 │   │   ├── al_kafi.py            # Al-Kafi cleaner
 │   │   ├── al_mizan.py           # Al-Mizan PDF->JSONL cleaner
 │   │   ├── faqih.py              # Man La Yahduruhu al-Faqih cleaner
@@ -96,7 +98,8 @@ deen-web-scraping/
 │   │   │   ├── nahjul_balagha/
 │   │   │   ├── man-la-yahduruhu-al-faqih/{csv,pdfs}/
 │   │   │   ├── tahdhib-al-ahkam/{csv,pdfs}/
-│   │   │   └── al-mizan/{pdfs,svg_scraped}/
+│   │   │   ├── al-mizan/{pdfs,svg_scraped}/
+│   │   │   └── al-islam/<author-slug>/  # chapters.jsonl + books.json (scraped)
 │   │   └── sunni/             # 5 CSVs from sunnah.com
 │   ├── processed/             # Cleaned/enhanced CSVs (post-OCR)
 │   └── chunks/                # Final JSONL files ready for indexing
@@ -104,6 +107,7 @@ deen-web-scraping/
 │       └── sunni/             # Sunni collection chunk files
 │
 ├── docs/                      # Per-collection documentation
+│   ├── al-islam.md            # al-islam.org scraper: selectors & pitfalls
 │   ├── al-mizan.md
 │   ├── man-la-yahduruhu-al-faqih.md
 │   └── tahdhib-al-ahkam.md    # Includes known pitfalls & handoff notes
@@ -133,6 +137,12 @@ deen-web-scraping/
 2. **Register it** in `src/deen_scraper/config.py` → add to `COLLECTIONS` dict and `COLLECTION_INPUTS`
 3. **Create a cleaner**: Copy any existing `cleaners/*.py` as a template (they all follow the same pattern)
 4. **Index it**: The unified indexers already support new collections — just pass `--collection <name>`
+
+### "I want to add another al-islam.org author"
+
+Add one line to `AL_ISLAM_AUTHORS` in `config.py` (`"<person-slug>": "Display Name"`), then run the
+scraper, cleaner, and both indexers with that slug. The scraper and cleaner are generic across
+authors, so no new modules are needed. See `docs/al-islam.md`.
 
 ### "I want to understand how a collection is processed"
 
@@ -192,7 +202,13 @@ python -c "from deen_scraper.scrapers.al_mizan_web import scrape_al_mizan_pdfs; 
 
 # Scrape a specific SVG volume route
 python -m deen_scraper.scrapers.al_mizan_svg --url https://almizan.org/vol/34/1-237
+
+# Scrape every al-islam.org book by one scholar (browser-driven, 10s crawl delay)
+python -m deen_scraper.scrapers.al_islam --author-url https://al-islam.org/person/murtadha-mutahhari
 ```
+
+> al-islam.org requires a real browser (Cloudflare) — run `python -m playwright install chromium`
+> once. Runs are resumable; see `docs/al-islam.md`.
 
 ### Stage 2: Parse
 
@@ -229,6 +245,7 @@ python -m deen_scraper.cleaners.faqih              # Man La Yahduruhu al-Faqih (
 python -m deen_scraper.cleaners.tahdhib             # Tahdhib al-Ahkam (3 volumes)
 python -m deen_scraper.cleaners.al_mizan            # Al-Mizan (from PDFs)
 python -m deen_scraper.cleaners.sunni              # All 5 Sunni collections
+python -m deen_scraper.cleaners.al_islam --author-slug murtadha-mutahhari  # al-islam.org author
 ```
 
 Output: JSONL files in `data/chunks/` — one per collection.
@@ -259,6 +276,7 @@ python -m deen_scraper.indexing.sparse_indexer --collection man-la-yahduruhu-al-
 | Man La Yahduruhu al-Faqih | Shia | 4 | PDF -> CSV -> OCR | `data/raw/shia/man-la-yahduruhu-al-faqih/` | ✅ Cleaned & indexed |
 | Tahdhib al-Ahkam | Shia | 3 | PDF -> CSV -> OCR | `data/raw/shia/tahdhib-al-ahkam/` | ✅ Cleaned & indexed |
 | Al-Mizan | Shia | Multiple | PDF + Web | `data/raw/shia/al-mizan/` | Partial |
+| Murtadha Mutahhari (al-islam.org) | Shia | 33 books | Web scrape (HTML) | `data/raw/shia/al-islam/murtadha-mutahhari/` | ✅ Cleaned & indexed |
 | Sahih al-Bukhari | Sunni | All books | CSV | `data/raw/sunni/` | ✅ |
 | Sahih Muslim | Sunni | All books | CSV | `data/raw/sunni/` | ✅ |
 | Jami at-Tirmidhi | Sunni | All books | CSV | `data/raw/sunni/` | ✅ |
@@ -324,6 +342,15 @@ All constants and paths live in `src/deen_scraper/config.py`. Environment variab
 - **Vol 2 hadith 931/932 anomaly**: The printed PDF has a duplicate 931 and missing 932. The second 931 should be treated as 932 in dataset logic.
 - **Vol 3 hadith 235**: A massive composite hadith was split into 235.1–235.7. Only 235.1 should have Arabic text; 235.2–235.7 must remain empty to avoid duplication.
 - **See `docs/tahdhib-al-ahkam.md`** for the complete list of known issues, validation checklists, and the recommended workflow for processing new volumes.
+
+### al-islam.org
+- The **"N Books" heading on an author page is a row count, not a book count**. Mutahhari's page
+  says 50 but there are 33 distinct books; the listing joins the author term against several node
+  fields, so books credited more than once appear multiple times. Do not treat the number as a
+  completeness target.
+- Fetching requires a real browser (Cloudflare blocks `requests`/`curl`), and `robots.txt` asks for
+  `Crawl-delay: 10`, so a full author scrape takes about an hour. Runs resume from cached HTML.
+- **See `docs/al-islam.md`** for the full selector map and pitfalls.
 
 ### General
 - OCR only works on macOS (Apple Vision framework). On other platforms, fall back to PyMuPDF's built-in text extraction.

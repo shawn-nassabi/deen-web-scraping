@@ -29,6 +29,15 @@ Thumbs.db
 # data/**/*.bak
 # data/**/*.tmp
 
+# Scraper working files: cached HTML responses and the persistent browser
+# profile used to fetch al-islam.org. Both are regenerable and large.
+data/raw/shia/al-islam/_html_cache/
+data/raw/shia/al-islam/_browser_profile/
+
+# al-islam.org scraped author output and chunk files (regenerable; do not commit)
+data/raw/shia/al-islam/*/
+data/chunks/al_islam_*_cleaned_chunks.jsonl
+
 # Backup files created during OCR patching
 .pre_*.bak
 *.bak
